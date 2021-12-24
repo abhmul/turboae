@@ -23,11 +23,13 @@ class STEQuantize(torch.autograd.Function):
 
         ctx.save_for_backward(inputs)
         ctx.args = args
-
+        
+        # Set to 1.0 by default
         x_lim_abs  = args.enc_value_limit
         x_lim_range = 2.0 * x_lim_abs
         x_input_norm =  torch.clamp(inputs, -x_lim_abs, x_lim_abs)
 
+        # By default 2
         if args.enc_quantize_level == 2:
             outputs_int = torch.sign(x_input_norm)
         else:
@@ -37,14 +39,19 @@ class STEQuantize(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, grad_output):
+        # By default 'both'
         if ctx.args.enc_clipping in ['inputs', 'both']:
             input, = ctx.saved_tensors
+            # Set to 1.0 by default
             grad_output[input>ctx.args.enc_value_limit]=0
             grad_output[input<-ctx.args.enc_value_limit]=0
 
+        # By default 'both'
         if ctx.args.enc_clipping in ['gradient', 'both']:
+            # By default 0.01
             grad_output = torch.clamp(grad_output, -ctx.args.enc_grad_limit, ctx.args.enc_grad_limit)
 
+        # Explicitly using block_norm (or block_ste for turboae-binary) (so we go to if statement)
         if ctx.args.train_channel_mode not in ['group_norm_noisy', 'group_norm_noisy_quantize']:
             grad_input = grad_output.clone()
         else:
@@ -100,13 +107,15 @@ class ENCBase(torch.nn.Module):
             return inputs
 
     def power_constraint(self, x_input):
-
+        
+        # False by default
         if self.args.no_code_norm:
             return x_input
-        else:
+        else: # Enter here
             this_mean    = torch.mean(x_input)
             this_std     = torch.std(x_input)
 
+            # False by default (set when testing according to paper)
             if self.args.precompute_norm_stats:
                 self.num_test_block += 1.0
                 self.mean_scalar = (self.mean_scalar*(self.num_test_block-1) + this_mean)/self.num_test_block
@@ -115,10 +124,11 @@ class ENCBase(torch.nn.Module):
             else:
                 x_input_norm = (x_input-this_mean)*1.0 / this_std
 
+            # For turboae-binary
             if self.args.train_channel_mode == 'block_norm_ste':
                 stequantize = STEQuantize.apply
                 x_input_norm = stequantize(x_input_norm, self.args)
-
+            # For turboae-cont - but by default 0
             if self.args.enc_truncate_limit>0:
                 x_input_norm = torch.clamp(x_input_norm, -self.args.enc_truncate_limit, self.args.enc_truncate_limit)
 
@@ -311,6 +321,8 @@ class ENC_interCNN(ENCBase):
 
         # Encoder
         if self.args.encoder == 'TurboAE_rate3_cnn':
+            # -enc_num_unit 100 -enc_num_layer 5 -code_rate_k 1 -code_rate_n 3 
+            # parser.add_argument('-enc_kernel_size', type=int, default=5)
             self.enc_cnn_1       = SameShapeConv1d(num_layer=args.enc_num_layer, in_channels=args.code_rate_k,
                                                       out_channels= args.enc_num_unit, kernel_size = args.enc_kernel_size)
 
@@ -334,6 +346,7 @@ class ENC_interCNN(ENCBase):
         self.enc_linear_2    = torch.nn.Linear(args.enc_num_unit, 1)
         self.enc_linear_3    = torch.nn.Linear(args.enc_num_unit, 1)
 
+        # Gets replaced in channel_ae L34
         self.interleaver      = Interleaver(args, p_array)
 
 
@@ -349,7 +362,8 @@ class ENC_interCNN(ENCBase):
         self.enc_linear_3 = torch.nn.DataParallel(self.enc_linear_3)
 
     def forward(self, inputs):
-
+        
+        # This if statement wll not run, args.is_variable_block_len false by default.
         if self.args.is_variable_block_len:
             block_len = inputs.shape[1]
             # reset interleaver
@@ -359,9 +373,9 @@ class ENC_interCNN(ENCBase):
                 p_array = rand_gen.permutation(arange(block_len))
                 self.set_interleaver(p_array)
 
-        inputs     = 2.0*inputs - 1.0
-        x_sys      = self.enc_cnn_1(inputs)
-        x_sys      = self.enc_act(self.enc_linear_1(x_sys))
+        inputs     = 2.0*inputs - 1.0  # Batch x Time x Channels ?
+        x_sys      = self.enc_cnn_1(inputs)  # Batch x 100 x 1 -> Batch x 1 x Time -> CNN -> Batch x Channels x Time -> Batch x Time x 100
+        x_sys      = self.enc_act(self.enc_linear_1(x_sys))  # Batch x Time(100) x Channels(100) -> Batch x Time(100) x Channels(1)
 
         x_p1       = self.enc_cnn_2(inputs)
         x_p1       = self.enc_act(self.enc_linear_2(x_p1))

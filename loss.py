@@ -28,7 +28,7 @@ class FocalLoss(nn.Module):
             return F_loss
 
 def customized_loss(output, X_train, args, size_average = True, noise = None, code = None):
-
+    # We are explicitly setting -loss bce
     if args.loss == 'bce':
         output = torch.clamp(output, 0.0, 1.0)
         if size_average == True:

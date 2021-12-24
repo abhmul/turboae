@@ -176,7 +176,10 @@ class DEC_LargeCNN(torch.nn.Module):
             CNNLayer = DenseSameShapeConv1d
 
 
+        # -num_iteration 6 
         for idx in range(args.num_iteration):
+            # -dec_num_unit 100 -dec_num_layer 5 -num_iter_ft 5
+            # parser.add_argument('-dec_kernel_size', type=int, default=5)
             self.dec1_cnns.append(CNNLayer(num_layer=args.dec_num_layer, in_channels=2 + args.num_iter_ft,
                                                   out_channels= args.dec_num_unit, kernel_size = args.dec_kernel_size)
             )
@@ -204,7 +207,8 @@ class DEC_LargeCNN(torch.nn.Module):
         self.deinterleaver.set_parray(p_array)
 
     def forward(self, received):
-
+        
+        # is_variable_block_len is False by default
         if self.args.is_variable_block_len:
             block_len = received.shape[1]
             # reset interleaver
@@ -227,11 +231,15 @@ class DEC_LargeCNN(torch.nn.Module):
         prior = torch.zeros((self.args.batch_size, block_len, self.args.num_iter_ft)).to(self.this_device)
 
         for idx in range(self.args.num_iteration - 1):
+            # Noninterleaved input
             x_this_dec = torch.cat([r_sys, r_par1, prior], dim = 2)
 
+            # Batch x Time x 2 + num_iter_ft -> Batch x Time x num_dec_unit(100)
             x_dec  = self.dec1_cnns[idx](x_this_dec)
+            # Batch x Time x num_dec_unit(100) -> Batch x Time x num_iter_ft(5) 
             x_plr      = self.dec1_outputs[idx](x_dec)
 
+            # By default = 1
             if self.args.extrinsic:
                 x_plr = x_plr - prior
 

@@ -19,9 +19,10 @@ class Channel_AE(torch.nn.Module):
 
     def forward(self, input, fwd_noise):
         # Setup Interleavers.
+        # is_interleave is 1 by default
         if self.args.is_interleave == 0:
             pass
-
+        # is_same_interleaver is 1 explicitly
         elif self.args.is_same_interleaver == 0:
             interleaver = RandInterlv.RandInterlv(self.args.block_len, np.random.randint(0, 1000))
 
@@ -38,6 +39,7 @@ class Channel_AE(torch.nn.Module):
         codes  = self.enc(input)
 
         # Setup channel mode:
+        # For our training we explicitly use awgn
         if self.args.channel in ['awgn', 't-dist', 'radar', 'ge_awgn']:
             received_codes = codes + fwd_noise
 
@@ -64,6 +66,7 @@ class Channel_AE(torch.nn.Module):
             print('default AWGN channel')
             received_codes = codes + fwd_noise
 
+        # Default false, we're using block_norm_ste for turboae-binary instead
         if self.args.rec_quantize:
             myquantize = MyQuantize.apply
             received_codes = myquantize(received_codes, self.args.rec_quantize_level, self.args.rec_quantize_level)

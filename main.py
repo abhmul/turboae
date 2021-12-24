@@ -142,6 +142,7 @@ if __name__ == '__main__':
     if args.encoder == 'turboae_2int' and args.decoder == 'turboae_2int':
         encoder = ENC(args, p_array1, p_array2)
         decoder = DEC(args, p_array1, p_array2)
+    # Using args.encoder == 'TurboAE_rate3_cnn'
     else:
         encoder = ENC(args, p_array1)
         decoder = DEC(args, p_array1)
@@ -173,6 +174,7 @@ if __name__ == '__main__':
 
         model.args = args
 
+    # Sanity Check
     print(model)
 
 
@@ -180,15 +182,18 @@ if __name__ == '__main__':
     # Setup Optimizers, only Adam and Lookahead for now.
     ##################################################################
 
+    # By default it is adam
     if args.optimizer == 'lookahead':
         print('Using Lookahead Optimizers')
         from optimizers import Lookahead
         lookahead_k = 5
         lookahead_alpha = 0.5
+        # enc_lr 0.0001 explicitly
         if args.num_train_enc != 0 and args.encoder not in ['Turbo_rate3_lte', 'Turbo_rate3_757']: # no optimizer for encoder
             enc_base_opt  = optim.Adam(model.enc.parameters(), lr=args.enc_lr)
             enc_optimizer = Lookahead(enc_base_opt, k=lookahead_k, alpha=lookahead_alpha)
 
+        # dec_lr 0.0001 explicitly
         if args.num_train_dec != 0:
             dec_base_opt  = optim.Adam(filter(lambda p: p.requires_grad, model.dec.parameters()), lr=args.dec_lr)
             dec_optimizer = Lookahead(dec_base_opt, k=lookahead_k, alpha=lookahead_alpha)
@@ -218,16 +223,18 @@ if __name__ == '__main__':
     report_loss, report_ber = [], []
 
     for epoch in range(1, args.num_epoch + 1):
-
+        
+        # By deafult 0 (we don't want to joint train)
         if args.joint_train == 1 and args.encoder not in ['Turbo_rate3_lte', 'Turbo_rate3_757']:
             for idx in range(args.num_train_enc+args.num_train_dec):
                 train(epoch, model, general_optimizer, args, use_cuda = use_cuda, mode ='encoder')
 
         else:
             if args.num_train_enc > 0 and args.encoder not in ['Turbo_rate3_lte', 'Turbo_rate3_757']:
+                # num_train_enc set to 1 explicitly
                 for idx in range(args.num_train_enc):
                     train(epoch, model, enc_optimizer, args, use_cuda = use_cuda, mode ='encoder')
-
+            # num_train_dec set to 5 explicitly
             if args.num_train_dec > 0:
                 for idx in range(args.num_train_dec):
                     train(epoch, model, dec_optimizer, args, use_cuda = use_cuda, mode ='decoder')

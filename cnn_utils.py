@@ -13,6 +13,7 @@ class SameShapeConv1d(torch.nn.Module):
         for idx in range(num_layer):
             if idx == 0:
                 self.cnns.append(torch.nn.Conv1d(in_channels = in_channels, out_channels=out_channels,
+                # kernel_size = 5 => padding = 2
                                                       kernel_size=kernel_size, stride=1, padding=(kernel_size // 2),
                                                       dilation=1, groups=1, bias=True)
                 )
@@ -34,7 +35,7 @@ class SameShapeConv1d(torch.nn.Module):
             self.activation = F.elu
 
     def forward(self, inputs):
-        inputs = torch.transpose(inputs, 1,2)
+        inputs = torch.transpose(inputs, 1,2)  # Transpose dim 1 with dim 2
         x = inputs
         for idx in range(self.num_layer):
             if self.no_act:

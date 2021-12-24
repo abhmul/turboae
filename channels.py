@@ -4,9 +4,10 @@ import torch
 from utils import snr_db2sigma, snr_sigma2db
 import numpy as np
 
+# test_sigma is really test_snr
 def generate_noise(noise_shape, args, test_sigma = 'default', snr_low = 0.0, snr_high = 0.0, mode = 'encoder'):
     # SNRs at training
-    if test_sigma == 'default':
+    if test_sigma == 'default':  # This is the case that is run
         if args.channel == 'bec':
             if mode == 'encoder':
                 this_sigma = args.bec_p_enc
@@ -18,7 +19,7 @@ def generate_noise(noise_shape, args, test_sigma = 'default', snr_low = 0.0, snr
                 this_sigma = args.bsc_p_enc
             else:
                 this_sigma = args.bsc_p_dec
-        else: # general AWGN cases
+        else: # general AWGN cases  - For channel = awgn we go here
             this_sigma_low = snr_db2sigma(snr_low)
             this_sigma_high= snr_db2sigma(snr_high)
             # mixture of noise sigma.
@@ -31,7 +32,7 @@ def generate_noise(noise_shape, args, test_sigma = 'default', snr_low = 0.0, snr
             this_sigma = snr_db2sigma(test_sigma)
 
     # SNRs at testing
-    if args.channel == 'awgn':
+    if args.channel == 'awgn':  # This is our case
         fwd_noise  = this_sigma * torch.randn(noise_shape, dtype=torch.float)
 
     elif args.channel == 't-dist':

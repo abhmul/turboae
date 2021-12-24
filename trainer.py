@@ -29,7 +29,7 @@ def train(epoch, model, optimizer, args, use_cuda = False, verbose = True, mode 
     train_loss = 0.0
     k_same_code_counter = 0
 
-
+    # -num_block 50000 for first train, 100000 for fine tune, 100000 for fine tune of turboae-binary
     for batch_idx in range(int(args.num_block/args.batch_size)):
 
 
@@ -40,6 +40,7 @@ def train(epoch, model, optimizer, args, use_cuda = False, verbose = True, mode 
 
         optimizer.zero_grad()
 
+        # By default false
         if args.is_k_same_code and mode == 'encoder':
             if batch_idx == 0:
                 k_same_code_counter += 1
@@ -55,6 +56,8 @@ def train(epoch, model, optimizer, args, use_cuda = False, verbose = True, mode 
         noise_shape = (args.batch_size, args.block_len, args.code_rate_n)
         # train encoder/decoder with different SNR... seems to be a good practice.
         if mode == 'encoder':
+            # Test sigma not passed in so is set to 'default'
+            # -train_enc_channel_low 1.0 -train_enc_channel_high 1.0 (but changes depending on what channel we are fine-tuning for)
             fwd_noise  = generate_noise(noise_shape, args, snr_low=args.train_enc_channel_low, snr_high=args.train_enc_channel_high, mode = 'encoder')
         else:
             fwd_noise  = generate_noise(noise_shape, args, snr_low=args.train_dec_channel_low, snr_high=args.train_dec_channel_high, mode = 'decoder')
@@ -64,7 +67,9 @@ def train(epoch, model, optimizer, args, use_cuda = False, verbose = True, mode 
         output, code = model(X_train, fwd_noise)
         output = torch.clamp(output, 0.0, 1.0)
 
+        # Two if blocks are the same
         if mode == 'encoder':
+            # size_average is True by default
             loss = customized_loss(output, X_train, args, noise=fwd_noise, code = code)
 
         else:
@@ -97,6 +102,7 @@ def validate(model, optimizer, args, use_cuda = False, verbose = True):
         for batch_idx in range(num_test_batch):
             X_test     = torch.randint(0, 2, (args.batch_size, args.block_len, args.code_rate_k), dtype=torch.float)
             noise_shape = (args.batch_size, args.block_len, args.code_rate_n)
+            # No mode is set, so default is encoder; Changes behavior for bsc and bec channels
             fwd_noise  = generate_noise(noise_shape, args,
                                         snr_low=args.train_enc_channel_low,
                                         snr_high=args.train_enc_channel_low)
@@ -159,6 +165,7 @@ def test(model, args, block_len = 'default',use_cuda = False):
     print('SNRS', snrs)
     sigmas = snrs
 
+    # sigma = this_snr (typo, sigma is actually getting used as snr)
     for sigma, this_snr in zip(sigmas, snrs):
         test_ber, test_bler = .0, .0
         with torch.no_grad():
