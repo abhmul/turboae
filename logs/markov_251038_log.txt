@@ -1,0 +1,655 @@
+Namespace(batch_size=10000, bce_lambda=1.0, bec_p=0.0, bec_p_dec=0.0, ber_lambda=1.0, block_len=100, block_len_high=200, block_len_low=10, bsc_p=0.0, bsc_p_dec=0.0, channel='ge_awgn', code_rate_k=1, code_rate_n=3, dec_act='linear', dec_kernel_size=5, dec_lr=0.0001, dec_num_layer=5, dec_num_unit=100, dec_rnn='gru', decoder='TurboAE_rate3_cnn', demod_lr=0.005, demod_num_layer=1, demod_num_unit=20, dropout=0.0, enc_act='elu', enc_clipping='both', enc_grad_limit=0.01, enc_kernel_size=5, enc_lr=0.0001, enc_num_layer=2, enc_num_unit=100, enc_quantize_level=2, enc_rnn='gru', enc_truncate_limit=0, enc_value_limit=1.0, encoder='TurboAE_rate3_cnn', extrinsic=1, focal_alpha=1.0, focal_gamma=0.0, img_size=10, init_nw_weight='./models/dta_steq2_cnn2_cnn5_enctrain2_dectrainneg15_2.pt', is_interleave=1, is_k_same_code=False, is_parallel=1, is_same_interleaver=1, is_variable_block_len=False, joint_train=0, k_same_code=2, lambda_maxBCE=0.01, loss='bce', mod_lr=0.005, mod_num_layer=1, mod_num_unit=20, mod_pc='block_power', mod_rate=2, momentum=0.9, no_code_norm=False, no_cuda=False, num_ber_puncture=5, num_block=20000, num_epoch=0, num_iter_ft=5, num_iteration=6, num_train_dec=5, num_train_demod=5, num_train_enc=1, num_train_mod=1, optimizer='adam', precompute_norm_stats=False, print_pos_ber=False, print_pos_power=False, print_test_traj=True, radar_power=5.0, radar_prob=0.05, rec_quantize=False, rec_quantize_level=2, rec_quantize_limit=1.0, snr_points=13, snr_test_end=3.0, snr_test_start=-3.0, test_channel_mode='block_norm_ste', test_ratio=1, train_channel_mode='block_norm_ste', train_dec_channel_high=2.0, train_dec_channel_low=-1.5, train_enc_channel_high=1.0, train_enc_channel_low=1.0, vv=3.0)
+using random interleaver [26 86  2 55 75 93 16 73 54 95 53 92 78 13  7 30 22 24 33  8 43 62  3 71
+ 45 48  6 99 82 76 60 80 90 68 51 27 18 56 63 74  1 61 42 41  4 15 17 40
+ 38  5 91 59  0 34 28 50 11 35 23 52 10 31 66 57 79 85 32 84 14 89 19 29
+ 49 97 98 69 20 94 72 77 25 37 81 46 39 65 58 12 88 70 87 36 21 83  9 96
+ 67 64 47 44] [18 29 64 92 72 87  5 15 12 17 61 76  9 78 80  7 33  6 37 74 79  1 45 28
+ 60 52 25 39 97 44 16 55 83 49 22 70 47  4 82 94 53 66 26 84 31 63  8 75
+ 98 57 71 99 86 96 69 24 30 13 40 56 68 95 81 19 38 91 54 32 51 85 11 89
+ 90 36 65 88 41 14 27 50 20 46 67 35 62  2 59 23 58 43 10  0 73 21 77 42
+  3 93 48 34]
+Channel_AE(
+  (enc): ENC_interCNN(
+    (enc_cnn_1): DataParallel(
+      (module): SameShapeConv1d(
+        (cnns): ModuleList(
+          (0): Conv1d(1, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+        )
+      )
+    )
+    (enc_cnn_2): DataParallel(
+      (module): SameShapeConv1d(
+        (cnns): ModuleList(
+          (0): Conv1d(1, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+        )
+      )
+    )
+    (enc_cnn_3): DataParallel(
+      (module): SameShapeConv1d(
+        (cnns): ModuleList(
+          (0): Conv1d(1, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+        )
+      )
+    )
+    (enc_linear_1): DataParallel(
+      (module): Linear(in_features=100, out_features=1, bias=True)
+    )
+    (enc_linear_2): DataParallel(
+      (module): Linear(in_features=100, out_features=1, bias=True)
+    )
+    (enc_linear_3): DataParallel(
+      (module): Linear(in_features=100, out_features=1, bias=True)
+    )
+    (interleaver): Interleaver()
+  )
+  (dec): DEC_LargeCNN(
+    (interleaver): Interleaver()
+    (deinterleaver): DeInterleaver()
+    (dec1_cnns): ModuleList(
+      (0): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (1): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (2): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (3): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (4): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (5): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+    )
+    (dec2_cnns): ModuleList(
+      (0): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (1): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (2): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (3): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (4): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (5): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+    )
+    (dec1_outputs): ModuleList(
+      (0): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (1): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (2): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (3): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (4): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (5): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+    )
+    (dec2_outputs): ModuleList(
+      (0): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (1): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (2): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (3): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (4): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (5): DataParallel(
+        (module): Linear(in_features=100, out_features=1, bias=True)
+      )
+    )
+  )
+)
+test loss trajectory []
+test ber trajectory []
+total epoch 0
+SNRS [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+-3.0
+generating noise for awgn
+snr: -3.0
+noniid_awgn_sigma: 1.4125375446227544
+awgn_sigma: 1.4125375446227544
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -2.0000000000000004
+self.bad_snr: -4.0
+self.good_sigma: 1.2589254117941673
+self.bad_sigma: 1.5848931924611136
+(1.4125375446227544, 1.2589254117941673, 1.5848931924611136)
+-3.0
+generating noise for awgn
+snr: -3.0
+noniid_awgn_sigma: 1.4125375446227544
+awgn_sigma: 1.4125375446227544
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -2.0000000000000004
+self.bad_snr: -4.0
+self.good_sigma: 1.2589254117941673
+self.bad_sigma: 1.5848931924611136
+(1.4125375446227544, 1.2589254117941673, 1.5848931924611136)
+no pos BER specified.
+Test SNR -3.0 with ber  0.25151050090789795 with bler 0.98245
+Test SNR -3.0 with ber var 0.014878147281706333 with bler var 0.017242859642982146
+No puncturation is there.
+-2.5
+generating noise for awgn
+snr: -2.5
+noniid_awgn_sigma: 1.333521432163324
+awgn_sigma: 1.333521432163324
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -1.4999999999999996
+self.bad_snr: -3.4999999999999996
+self.good_sigma: 1.1885022274370185
+self.bad_sigma: 1.4962356560944334
+(1.333521432163324, 1.1885022274370185, 1.4962356560944334)
+-2.5
+generating noise for awgn
+snr: -2.5
+noniid_awgn_sigma: 1.333521432163324
+awgn_sigma: 1.333521432163324
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -1.4999999999999996
+self.bad_snr: -3.4999999999999996
+self.good_sigma: 1.1885022274370185
+self.bad_sigma: 1.4962356560944334
+(1.333521432163324, 1.1885022274370185, 1.4962356560944334)
+no pos BER specified.
+Test SNR -2.5 with ber  0.20181100070476532 with bler 0.9481999999999999
+Test SNR -2.5 with ber var 0.016634970903396606 with bler var 0.04911921596079803
+No puncturation is there.
+-2.0
+generating noise for awgn
+snr: -2.0
+noniid_awgn_sigma: 1.2589254117941673
+awgn_sigma: 1.2589254117941673
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -1.0
+self.bad_snr: -3.0
+self.good_sigma: 1.1220184543019633
+self.bad_sigma: 1.4125375446227544
+(1.2589254117941673, 1.1220184543019633, 1.4125375446227544)
+-2.0
+generating noise for awgn
+snr: -2.0
+noniid_awgn_sigma: 1.2589254117941673
+awgn_sigma: 1.2589254117941673
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -1.0
+self.bad_snr: -3.0
+self.good_sigma: 1.1220184543019633
+self.bad_sigma: 1.4125375446227544
+(1.2589254117941673, 1.1220184543019633, 1.4125375446227544)
+no pos BER specified.
+Test SNR -2.0 with ber  0.14805400371551514 with bler 0.87965
+Test SNR -2.0 with ber var 0.01596251130104065 with bler var 0.10587117105855291
+No puncturation is there.
+-1.5
+generating noise for awgn
+snr: -1.5
+noniid_awgn_sigma: 1.1885022274370185
+awgn_sigma: 1.1885022274370185
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -0.5000000000000004
+self.bad_snr: -2.5000000000000004
+self.good_sigma: 1.0592537251772889
+self.bad_sigma: 1.3335214321633242
+(1.1885022274370185, 1.0592537251772889, 1.3335214321633242)
+-1.5
+generating noise for awgn
+snr: -1.5
+noniid_awgn_sigma: 1.1885022274370185
+awgn_sigma: 1.1885022274370185
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: -0.5000000000000004
+self.bad_snr: -2.5000000000000004
+self.good_sigma: 1.0592537251772889
+self.bad_sigma: 1.3335214321633242
+(1.1885022274370185, 1.0592537251772889, 1.3335214321633242)
+no pos BER specified.
+Test SNR -1.5 with ber  0.09507100284099579 with bler 0.76065
+Test SNR -1.5 with ber var 0.01212576124817133 with bler var 0.18207068103405172
+No puncturation is there.
+-1.0
+generating noise for awgn
+snr: -1.0
+noniid_awgn_sigma: 1.1220184543019633
+awgn_sigma: 1.1220184543019633
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 8.881784197001252e-16
+self.bad_snr: -1.9999999999999991
+self.good_sigma: 0.9999999999999999
+self.bad_sigma: 1.258925411794167
+(1.1220184543019633, 0.9999999999999999, 1.258925411794167)
+-1.0
+generating noise for awgn
+snr: -1.0
+noniid_awgn_sigma: 1.1220184543019633
+awgn_sigma: 1.1220184543019633
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 8.881784197001252e-16
+self.bad_snr: -1.9999999999999991
+self.good_sigma: 0.9999999999999999
+self.bad_sigma: 1.258925411794167
+(1.1220184543019633, 0.9999999999999999, 1.258925411794167)
+no pos BER specified.
+Test SNR -1.0 with ber  0.05354449898004532 with bler 0.5953999999999999
+Test SNR -1.0 with ber var 0.007140388246625662 with bler var 0.2409108855442772
+No puncturation is there.
+-0.5
+generating noise for awgn
+snr: -0.5
+noniid_awgn_sigma: 1.0592537251772889
+awgn_sigma: 1.0592537251772889
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 0.5
+self.bad_snr: -1.5
+self.good_sigma: 0.9440608762859234
+self.bad_sigma: 1.1885022274370185
+(1.0592537251772889, 0.9440608762859234, 1.1885022274370185)
+-0.5
+generating noise for awgn
+snr: -0.5
+noniid_awgn_sigma: 1.0592537251772889
+awgn_sigma: 1.0592537251772889
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 0.5
+self.bad_snr: -1.5
+self.good_sigma: 0.9440608762859234
+self.bad_sigma: 1.1885022274370185
+(1.0592537251772889, 0.9440608762859234, 1.1885022274370185)
+no pos BER specified.
+Test SNR -0.5 with ber  0.025615498423576355 with bler 0.41615
+Test SNR -0.5 with ber var 0.0032074612099677324 with bler var 0.24298132656632834
+No puncturation is there.
+0.0
+generating noise for awgn
+snr: 0.0
+noniid_awgn_sigma: 1.0
+awgn_sigma: 1.0
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 1.0
+self.bad_snr: -1.0
+self.good_sigma: 0.8912509381337456
+self.bad_sigma: 1.1220184543019633
+(1.0, 0.8912509381337456, 1.1220184543019633)
+0.0
+generating noise for awgn
+snr: 0.0
+noniid_awgn_sigma: 1.0
+awgn_sigma: 1.0
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 1.0
+self.bad_snr: -1.0
+self.good_sigma: 0.8912509381337456
+self.bad_sigma: 1.1220184543019633
+(1.0, 0.8912509381337456, 1.1220184543019633)
+no pos BER specified.
+Test SNR 0.0 with ber  0.011163500137627125 with bler 0.25834999999999997
+Test SNR 0.0 with ber var 0.0011708997189998627 with bler var 0.19161485824291216
+No puncturation is there.
+0.5
+generating noise for awgn
+snr: 0.5
+noniid_awgn_sigma: 0.9440608762859234
+awgn_sigma: 0.9440608762859234
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 1.5
+self.bad_snr: -0.5000000000000001
+self.good_sigma: 0.8413951416451951
+self.bad_sigma: 1.0592537251772889
+(0.9440608762859234, 0.8413951416451951, 1.0592537251772889)
+0.5
+generating noise for awgn
+snr: 0.5
+noniid_awgn_sigma: 0.9440608762859234
+awgn_sigma: 0.9440608762859234
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 1.5
+self.bad_snr: -0.5000000000000001
+self.good_sigma: 0.8413951416451951
+self.bad_sigma: 1.0592537251772889
+(0.9440608762859234, 0.8413951416451951, 1.0592537251772889)
+no pos BER specified.
+Test SNR 0.5 with ber  0.004224499687552452 with bler 0.1446
+Test SNR 0.5 with ber var 0.0002991035580635071 with bler var 0.12369702485124254
+No puncturation is there.
+1.0
+generating noise for awgn
+snr: 1.0
+noniid_awgn_sigma: 0.8912509381337456
+awgn_sigma: 0.8912509381337456
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 1.9999999999999996
+self.bad_snr: -3.3306690738754696e-16
+self.good_sigma: 0.7943282347242815
+self.bad_sigma: 1.0
+(0.8912509381337456, 0.7943282347242815, 1.0)
+1.0
+generating noise for awgn
+snr: 1.0
+noniid_awgn_sigma: 0.8912509381337456
+awgn_sigma: 0.8912509381337456
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 1.9999999999999996
+self.bad_snr: -3.3306690738754696e-16
+self.good_sigma: 0.7943282347242815
+self.bad_sigma: 1.0
+(0.8912509381337456, 0.7943282347242815, 1.0)
+no pos BER specified.
+Test SNR 1.0 with ber  0.0017180000431835651 with bler 0.07985
+Test SNR 1.0 with ber var 7.754235411994159e-05 with bler var 0.07347765138256913
+No puncturation is there.
+1.5
+generating noise for awgn
+snr: 1.5
+noniid_awgn_sigma: 0.8413951416451951
+awgn_sigma: 0.8413951416451951
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 2.499999999999999
+self.bad_snr: 0.49999999999999933
+self.good_sigma: 0.7498942093324559
+self.bad_sigma: 0.9440608762859235
+(0.8413951416451951, 0.7498942093324559, 0.9440608762859235)
+1.5
+generating noise for awgn
+snr: 1.5
+noniid_awgn_sigma: 0.8413951416451951
+awgn_sigma: 0.8413951416451951
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 2.499999999999999
+self.bad_snr: 0.49999999999999933
+self.good_sigma: 0.7498942093324559
+self.bad_sigma: 0.9440608762859235
+(0.8413951416451951, 0.7498942093324559, 0.9440608762859235)
+no pos BER specified.
+Test SNR 1.5 with ber  0.0006994999712333083 with bler 0.0405
+Test SNR 1.5 with ber var 1.8776638171402737e-05 with bler var 0.03886169308465423
+No puncturation is there.
+2.0
+generating noise for awgn
+snr: 2.0
+noniid_awgn_sigma: 0.7943282347242815
+awgn_sigma: 0.7943282347242815
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 3.0
+self.bad_snr: 0.9999999999999998
+self.good_sigma: 0.7079457843841379
+self.bad_sigma: 0.8912509381337456
+(0.7943282347242815, 0.7079457843841379, 0.8912509381337456)
+2.0
+generating noise for awgn
+snr: 2.0
+noniid_awgn_sigma: 0.7943282347242815
+awgn_sigma: 0.7943282347242815
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 3.0
+self.bad_snr: 0.9999999999999998
+self.good_sigma: 0.7079457843841379
+self.bad_sigma: 0.8912509381337456
+(0.7943282347242815, 0.7079457843841379, 0.8912509381337456)
+no pos BER specified.
+Test SNR 2.0 with ber  0.00030250000418163836 with bler 0.0196
+Test SNR 2.0 with ber var 6.353811386361485e-06 with bler var 0.019216800840042
+No puncturation is there.
+2.5
+generating noise for awgn
+snr: 2.5
+noniid_awgn_sigma: 0.7498942093324559
+awgn_sigma: 0.7498942093324559
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 3.499999999999999
+self.bad_snr: 1.4999999999999991
+self.good_sigma: 0.6683439175686147
+self.bad_sigma: 0.8413951416451951
+(0.7498942093324559, 0.6683439175686147, 0.8413951416451951)
+2.5
+generating noise for awgn
+snr: 2.5
+noniid_awgn_sigma: 0.7498942093324559
+awgn_sigma: 0.7498942093324559
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 3.499999999999999
+self.bad_snr: 1.4999999999999991
+self.good_sigma: 0.6683439175686147
+self.bad_sigma: 0.8413951416451951
+(0.7498942093324559, 0.6683439175686147, 0.8413951416451951)
+no pos BER specified.
+Test SNR 2.5 with ber  0.00013600000238511711 with bler 0.009850000000000001
+Test SNR 2.5 with ber var 2.391623638686724e-06 with bler var 0.009753465173258664
+No puncturation is there.
+3.0
+generating noise for awgn
+snr: 3.0
+noniid_awgn_sigma: 0.7079457843841379
+awgn_sigma: 0.7079457843841379
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 4.0
+self.bad_snr: 2.0
+self.good_sigma: 0.6309573444801932
+self.bad_sigma: 0.7943282347242815
+(0.7079457843841379, 0.6309573444801932, 0.7943282347242815)
+3.0
+generating noise for awgn
+snr: 3.0
+noniid_awgn_sigma: 0.7079457843841379
+awgn_sigma: 0.7079457843841379
+shape torch.Size([10000, 100, 1])
+block_len: 100
+self.p_gb: 0.8
+self.p_bg: 0.8
+self.good_snr: 4.0
+self.bad_snr: 2.0
+self.good_sigma: 0.6309573444801932
+self.bad_sigma: 0.7943282347242815
+(0.7079457843841379, 0.6309573444801932, 0.7943282347242815)
+no pos BER specified.
+Test SNR 3.0 with ber  5.700000110664405e-05 with bler 0.0040999999999999995
+Test SNR 3.0 with ber var 9.167969210466254e-07 with bler var 0.004083394169708485
+No puncturation is there.
+final results on SNRs  [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+BER [0.25151050090789795, 0.20181100070476532, 0.14805400371551514, 0.09507100284099579, 0.05354449898004532, 0.025615498423576355, 0.011163500137627125, 0.004224499687552452, 0.0017180000431835651, 0.0006994999712333083, 0.00030250000418163836, 0.00013600000238511711, 5.700000110664405e-05]
+BER_VAR [0.014878147281706333, 0.016634970903396606, 0.01596251130104065, 0.01212576124817133, 0.007140388246625662, 0.0032074612099677324, 0.0011708997189998627, 0.0002991035580635071, 7.754235411994159e-05, 1.8776638171402737e-05, 6.353811386361485e-06, 2.391623638686724e-06, 9.167969210466254e-07]
+BLER [0.98245, 0.9481999999999999, 0.87965, 0.76065, 0.5953999999999999, 0.41615, 0.25834999999999997, 0.1446, 0.07985, 0.0405, 0.0196, 0.009850000000000001, 0.0040999999999999995]
+BLER_VAR [0.017242859642982146, 0.04911921596079803, 0.10587117105855291, 0.18207068103405172, 0.2409108855442772, 0.24298132656632834, 0.19161485824291216, 0.12369702485124254, 0.07347765138256913, 0.03886169308465423, 0.019216800840042, 0.009753465173258664, 0.004083394169708485]
+encoder power is tensor(0.9998)
+adjusted SNR should be [-3.001948372490688, -2.501949066066031, -2.001948412659366, -1.5019484298453425, -1.0019488271432277, -0.5019486837683236, -0.0019484771311770797, 0.4980518977432333, 0.9980516203225196, 1.4980515499642144, 1.9980516664498917, 2.4980513357625083, 2.998051558573409]

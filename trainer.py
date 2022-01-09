@@ -13,6 +13,8 @@ import numpy as np
 from numpy import arange
 from numpy.random import mtrand
 
+from tqdm import trange
+
 ######################################################################################
 #
 # Trainer, validation, and test for AE code design
@@ -159,6 +161,7 @@ def test(model, args, block_len = 'default',use_cuda = False):
             print('Pre-computed norm statistics mean ',model.enc.mean_scalar, 'std ', model.enc.std_scalar)
 
     ber_res, bler_res = [], []
+    ber_res_var, bler_res_var = [], []
     ber_res_punc, bler_res_punc = [], []
     snr_interval = (args.snr_test_end - args.snr_test_start)* 1.0 /  (args.snr_points-1)
     snrs = [snr_interval* item + args.snr_test_start for item in range(args.snr_points)]
@@ -168,19 +171,26 @@ def test(model, args, block_len = 'default',use_cuda = False):
     # sigma = this_snr (typo, sigma is actually getting used as snr)
     for sigma, this_snr in zip(sigmas, snrs):
         test_ber, test_bler = .0, .0
+        test_ber_lists, test_bler_lists = [], []
         with torch.no_grad():
             num_test_batch = int(args.num_block/(args.batch_size))
-            for batch_idx in range(num_test_batch):
+            for batch_idx in trange(num_test_batch):
                 X_test     = torch.randint(0, 2, (args.batch_size, block_len, args.code_rate_k), dtype=torch.float)
                 fwd_noise  = generate_noise(X_test.shape, args, test_sigma=sigma)
 
                 X_test, fwd_noise= X_test.to(device), fwd_noise.to(device)
 
                 X_hat_test, the_codes = model(X_test, fwd_noise)
+                # X_hat_test, the_codes = X_test, fwd_noise
+
+                res_ber, res_ber_list = errors_ber(X_hat_test,X_test)
+                res_bler, res_bler_list = errors_bler(X_hat_test,X_test)
+                test_ber  += res_ber
+                test_bler += res_bler
+                test_ber_lists.append(res_ber_list)
+                test_bler_lists.append(res_bler_list)
 
 
-                test_ber  += errors_ber(X_hat_test,X_test)
-                test_bler += errors_bler(X_hat_test,X_test)
 
                 if batch_idx == 0:
                     test_pos_ber = errors_ber_pos(X_hat_test,X_test)
@@ -198,6 +208,7 @@ def test(model, args, block_len = 'default',use_cuda = False):
                 print('positional ber', res_pos)
                 print('positional argmax',res_pos_arg)
             try:
+                assert False
                 test_ber_punc, test_bler_punc = .0, .0
                 for batch_idx in range(num_test_batch):
                     X_test     = torch.randint(0, 2, (args.batch_size, block_len, args.code_rate_k), dtype=torch.float)
@@ -205,6 +216,7 @@ def test(model, args, block_len = 'default',use_cuda = False):
                     X_test, fwd_noise= X_test.to(device), fwd_noise.to(device)
 
                     X_hat_test, the_codes = model(X_test, fwd_noise)
+                    # X_hat_test, the_codes = X_test, fwd_noise
 
                     test_ber_punc  += errors_ber(X_hat_test,X_test, positions = res_pos_arg[:args.num_ber_puncture])
                     test_bler_punc += errors_bler(X_hat_test,X_test, positions = res_pos_arg[:args.num_ber_puncture])
@@ -220,9 +232,14 @@ def test(model, args, block_len = 'default',use_cuda = False):
 
         test_ber  /= num_test_batch
         test_bler /= num_test_batch
+        test_ber_var = np.var(np.concatenate(test_ber_lists), ddof=1)
+        test_bler_var = np.var(np.concatenate(test_bler_lists), ddof=1)
         print('Test SNR',this_snr ,'with ber ', float(test_ber), 'with bler', float(test_bler))
+        print('Test SNR',this_snr ,'with ber var', float(test_ber_var), 'with bler var', float(test_bler_var))
         ber_res.append(float(test_ber))
         bler_res.append( float(test_bler))
+        ber_res_var.append(float(test_ber_var))
+        bler_res_var.append(float(test_bler_var))
 
         try:
             test_ber_punc  /= num_test_batch
@@ -235,10 +252,12 @@ def test(model, args, block_len = 'default',use_cuda = False):
 
     print('final results on SNRs ', snrs)
     print('BER', ber_res)
+    print('BER_VAR', ber_res_var)
     print('BLER', bler_res)
-    print('final results on punctured SNRs ', snrs)
-    print('BER', ber_res_punc)
-    print('BLER', bler_res_punc)
+    print('BLER_VAR', bler_res_var)
+    # print('final results on punctured SNRs ', snrs)
+    # print('BER', ber_res_punc)
+    # print('BLER', bler_res_punc)
 
     # compute adjusted SNR. (some quantization might make power!=1.0)
     enc_power = 0.0

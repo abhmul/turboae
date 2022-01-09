@@ -1,0 +1,473 @@
+Namespace(batch_size=10000, bce_lambda=1.0, bec_p=0.0, bec_p_dec=0.0, ber_lambda=1.0, block_len=100, block_len_high=200, block_len_low=10, bsc_p=0.0, bsc_p_dec=0.0, channel='awgn', code_rate_k=1, code_rate_n=3, dec_act='linear', dec_kernel_size=5, dec_lr=0.0001, dec_num_layer=5, dec_num_unit=100, dec_rnn='gru', decoder='TurboAE_rate3_cnn', demod_lr=0.005, demod_num_layer=1, demod_num_unit=20, dropout=0.0, enc_act='elu', enc_clipping='both', enc_grad_limit=0.01, enc_kernel_size=5, enc_lr=0.0001, enc_num_layer=2, enc_num_unit=100, enc_quantize_level=2, enc_rnn='gru', enc_truncate_limit=0, enc_value_limit=1.0, encoder='TurboAE_rate3_cnn', extrinsic=1, focal_alpha=1.0, focal_gamma=0.0, img_size=10, init_nw_weight='./models/dta_steq2_cnn2_cnn5_enctrain2_dectrainneg15_2.pt', is_interleave=1, is_k_same_code=False, is_parallel=1, is_same_interleaver=1, is_variable_block_len=False, joint_train=0, k_same_code=2, lambda_maxBCE=0.01, loss='bce', mod_lr=0.005, mod_num_layer=1, mod_num_unit=20, mod_pc='block_power', mod_rate=2, momentum=0.9, no_code_norm=False, no_cuda=False, num_ber_puncture=5, num_block=20000, num_epoch=0, num_iter_ft=5, num_iteration=6, num_train_dec=5, num_train_demod=5, num_train_enc=1, num_train_mod=1, optimizer='adam', precompute_norm_stats=False, print_pos_ber=False, print_pos_power=False, print_test_traj=True, radar_power=5.0, radar_prob=0.05, rec_quantize=False, rec_quantize_level=2, rec_quantize_limit=1.0, snr_points=13, snr_test_end=3.0, snr_test_start=-3.0, test_channel_mode='block_norm_ste', test_ratio=1, train_channel_mode='block_norm_ste', train_dec_channel_high=2.0, train_dec_channel_low=-1.5, train_enc_channel_high=1.0, train_enc_channel_low=1.0, vv=3.0)
+using random interleaver [26 86  2 55 75 93 16 73 54 95 53 92 78 13  7 30 22 24 33  8 43 62  3 71
+ 45 48  6 99 82 76 60 80 90 68 51 27 18 56 63 74  1 61 42 41  4 15 17 40
+ 38  5 91 59  0 34 28 50 11 35 23 52 10 31 66 57 79 85 32 84 14 89 19 29
+ 49 97 98 69 20 94 72 77 25 37 81 46 39 65 58 12 88 70 87 36 21 83  9 96
+ 67 64 47 44] [18 29 64 92 72 87  5 15 12 17 61 76  9 78 80  7 33  6 37 74 79  1 45 28
+ 60 52 25 39 97 44 16 55 83 49 22 70 47  4 82 94 53 66 26 84 31 63  8 75
+ 98 57 71 99 86 96 69 24 30 13 40 56 68 95 81 19 38 91 54 32 51 85 11 89
+ 90 36 65 88 41 14 27 50 20 46 67 35 62  2 59 23 58 43 10  0 73 21 77 42
+  3 93 48 34]
+Channel_AE(
+  (enc): ENC_interCNN(
+    (enc_cnn_1): DataParallel(
+      (module): SameShapeConv1d(
+        (cnns): ModuleList(
+          (0): Conv1d(1, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+        )
+      )
+    )
+    (enc_cnn_2): DataParallel(
+      (module): SameShapeConv1d(
+        (cnns): ModuleList(
+          (0): Conv1d(1, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+        )
+      )
+    )
+    (enc_cnn_3): DataParallel(
+      (module): SameShapeConv1d(
+        (cnns): ModuleList(
+          (0): Conv1d(1, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+        )
+      )
+    )
+    (enc_linear_1): DataParallel(
+      (module): Linear(in_features=100, out_features=1, bias=True)
+    )
+    (enc_linear_2): DataParallel(
+      (module): Linear(in_features=100, out_features=1, bias=True)
+    )
+    (enc_linear_3): DataParallel(
+      (module): Linear(in_features=100, out_features=1, bias=True)
+    )
+    (interleaver): Interleaver()
+  )
+  (dec): DEC_LargeCNN(
+    (interleaver): Interleaver()
+    (deinterleaver): DeInterleaver()
+    (dec1_cnns): ModuleList(
+      (0): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (1): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (2): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (3): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (4): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (5): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+    )
+    (dec2_cnns): ModuleList(
+      (0): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (1): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (2): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (3): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (4): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+      (5): DataParallel(
+        (module): SameShapeConv1d(
+          (cnns): ModuleList(
+            (0): Conv1d(7, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (1): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (2): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (3): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+            (4): Conv1d(100, 100, kernel_size=(5,), stride=(1,), padding=(2,))
+          )
+        )
+      )
+    )
+    (dec1_outputs): ModuleList(
+      (0): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (1): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (2): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (3): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (4): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (5): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+    )
+    (dec2_outputs): ModuleList(
+      (0): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (1): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (2): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (3): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (4): DataParallel(
+        (module): Linear(in_features=100, out_features=5, bias=True)
+      )
+      (5): DataParallel(
+        (module): Linear(in_features=100, out_features=1, bias=True)
+      )
+    )
+  )
+)
+test loss trajectory []
+test ber trajectory []
+total epoch 0
+SNRS [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+-3.0
+generating noise for awgn
+snr: -3.0
+noniid_awgn_sigma: 1.4125375446227544
+awgn_sigma: 1.4125375446227544
+shape torch.Size([10000, 100, 1])
+block_len: 100
+-3.0
+generating noise for awgn
+snr: -3.0
+noniid_awgn_sigma: 1.4125375446227544
+awgn_sigma: 1.4125375446227544
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR -3.0 with ber  0.24763599038124084 with bler 0.9789
+Test SNR -3.0 with ber var 0.015321586281061172 with bler var 0.020655822791139554
+No puncturation is there.
+-2.5
+generating noise for awgn
+snr: -2.5
+noniid_awgn_sigma: 1.333521432163324
+awgn_sigma: 1.333521432163324
+shape torch.Size([10000, 100, 1])
+block_len: 100
+-2.5
+generating noise for awgn
+snr: -2.5
+noniid_awgn_sigma: 1.333521432163324
+awgn_sigma: 1.333521432163324
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR -2.5 with ber  0.19679999351501465 with bler 0.9406000000000001
+Test SNR -2.5 with ber var 0.016899602487683296 with bler var 0.05587443372168609
+No puncturation is there.
+-2.0
+generating noise for awgn
+snr: -2.0
+noniid_awgn_sigma: 1.2589254117941673
+awgn_sigma: 1.2589254117941673
+shape torch.Size([10000, 100, 1])
+block_len: 100
+-2.0
+generating noise for awgn
+snr: -2.0
+noniid_awgn_sigma: 1.2589254117941673
+awgn_sigma: 1.2589254117941673
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR -2.0 with ber  0.14135849475860596 with bler 0.8633500000000001
+Test SNR -2.0 with ber var 0.015669653192162514 with bler var 0.11798267663383168
+No puncturation is there.
+-1.5
+generating noise for awgn
+snr: -1.5
+noniid_awgn_sigma: 1.1885022274370185
+awgn_sigma: 1.1885022274370185
+shape torch.Size([10000, 100, 1])
+block_len: 100
+-1.5
+generating noise for awgn
+snr: -1.5
+noniid_awgn_sigma: 1.1885022274370185
+awgn_sigma: 1.1885022274370185
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR -1.5 with ber  0.08828149735927582 with bler 0.7355499999999999
+Test SNR -1.5 with ber var 0.011387781240046024 with bler var 0.19452592379618983
+No puncturation is there.
+-1.0
+generating noise for awgn
+snr: -1.0
+noniid_awgn_sigma: 1.1220184543019633
+awgn_sigma: 1.1220184543019633
+shape torch.Size([10000, 100, 1])
+block_len: 100
+-1.0
+generating noise for awgn
+snr: -1.0
+noniid_awgn_sigma: 1.1220184543019633
+awgn_sigma: 1.1220184543019633
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR -1.0 with ber  0.04926449805498123 with bler 0.5584
+Test SNR -1.0 with ber var 0.006854016799479723 with bler var 0.24660177008850445
+No puncturation is there.
+-0.5
+generating noise for awgn
+snr: -0.5
+noniid_awgn_sigma: 1.0592537251772889
+awgn_sigma: 1.0592537251772889
+shape torch.Size([10000, 100, 1])
+block_len: 100
+-0.5
+generating noise for awgn
+snr: -0.5
+noniid_awgn_sigma: 1.0592537251772889
+awgn_sigma: 1.0592537251772889
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR -0.5 with ber  0.02315549924969673 with bler 0.38625
+Test SNR -0.5 with ber var 0.002916723256930709 with bler var 0.237072791139557
+No puncturation is there.
+0.0
+generating noise for awgn
+snr: 0.0
+noniid_awgn_sigma: 1.0
+awgn_sigma: 1.0
+shape torch.Size([10000, 100, 1])
+block_len: 100
+0.0
+generating noise for awgn
+snr: 0.0
+noniid_awgn_sigma: 1.0
+awgn_sigma: 1.0
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 0.0 with ber  0.009259000420570374 with bler 0.22935
+Test SNR 0.0 with ber var 0.0009055862319655716 with bler var 0.17675741537076856
+No puncturation is there.
+0.5
+generating noise for awgn
+snr: 0.5
+noniid_awgn_sigma: 0.9440608762859234
+awgn_sigma: 0.9440608762859234
+shape torch.Size([10000, 100, 1])
+block_len: 100
+0.5
+generating noise for awgn
+snr: 0.5
+noniid_awgn_sigma: 0.9440608762859234
+awgn_sigma: 0.9440608762859234
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 0.5 with ber  0.003705000039190054 with bler 0.12885
+Test SNR 0.5 with ber var 0.00027207660605199635 with bler var 0.11225329016450823
+No puncturation is there.
+1.0
+generating noise for awgn
+snr: 1.0
+noniid_awgn_sigma: 0.8912509381337456
+awgn_sigma: 0.8912509381337456
+shape torch.Size([10000, 100, 1])
+block_len: 100
+1.0
+generating noise for awgn
+snr: 1.0
+noniid_awgn_sigma: 0.8912509381337456
+awgn_sigma: 0.8912509381337456
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 1.0 with ber  0.0014130000490695238 with bler 0.0697
+Test SNR 1.0 with ber var 4.965591506334022e-05 with bler var 0.06484515225761289
+No puncturation is there.
+1.5
+generating noise for awgn
+snr: 1.5
+noniid_awgn_sigma: 0.8413951416451951
+awgn_sigma: 0.8413951416451951
+shape torch.Size([10000, 100, 1])
+block_len: 100
+1.5
+generating noise for awgn
+snr: 1.5
+noniid_awgn_sigma: 0.8413951416451951
+awgn_sigma: 0.8413951416451951
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 1.5 with ber  0.0005624999757856131 with bler 0.034
+Test SNR 1.5 with ber var 1.651942147873342e-05 with bler var 0.03284564228211411
+No puncturation is there.
+2.0
+generating noise for awgn
+snr: 2.0
+noniid_awgn_sigma: 0.7943282347242815
+awgn_sigma: 0.7943282347242815
+shape torch.Size([10000, 100, 1])
+block_len: 100
+2.0
+generating noise for awgn
+snr: 2.0
+noniid_awgn_sigma: 0.7943282347242815
+awgn_sigma: 0.7943282347242815
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 2.0 with ber  0.00023599999258294702 with bler 0.01515
+Test SNR 2.0 with ber var 5.114559826324694e-06 with bler var 0.014921223561178058
+No puncturation is there.
+2.5
+generating noise for awgn
+snr: 2.5
+noniid_awgn_sigma: 0.7498942093324559
+awgn_sigma: 0.7498942093324559
+shape torch.Size([10000, 100, 1])
+block_len: 100
+2.5
+generating noise for awgn
+snr: 2.5
+noniid_awgn_sigma: 0.7498942093324559
+awgn_sigma: 0.7498942093324559
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 2.5 with ber  0.00011350000568199903 with bler 0.0078000000000000005
+Test SNR 2.5 with ber var 2.022218950514798e-06 with bler var 0.007739546977348864
+No puncturation is there.
+3.0
+generating noise for awgn
+snr: 3.0
+noniid_awgn_sigma: 0.7079457843841379
+awgn_sigma: 0.7079457843841379
+shape torch.Size([10000, 100, 1])
+block_len: 100
+3.0
+generating noise for awgn
+snr: 3.0
+noniid_awgn_sigma: 0.7079457843841379
+awgn_sigma: 0.7079457843841379
+shape torch.Size([10000, 100, 1])
+block_len: 100
+no pos BER specified.
+Test SNR 3.0 with ber  5.300000339047983e-05 with bler 0.0037999999999999996
+Test SNR 3.0 with ber var 8.772348678576236e-07 with bler var 0.0037857492874643715
+No puncturation is there.
+final results on SNRs  [-3.0, -2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+BER [0.24763599038124084, 0.19679999351501465, 0.14135849475860596, 0.08828149735927582, 0.04926449805498123, 0.02315549924969673, 0.009259000420570374, 0.003705000039190054, 0.0014130000490695238, 0.0005624999757856131, 0.00023599999258294702, 0.00011350000568199903, 5.300000339047983e-05]
+BER_VAR [0.015321586281061172, 0.016899602487683296, 0.015669653192162514, 0.011387781240046024, 0.006854016799479723, 0.002916723256930709, 0.0009055862319655716, 0.00027207660605199635, 4.965591506334022e-05, 1.651942147873342e-05, 5.114559826324694e-06, 2.022218950514798e-06, 8.772348678576236e-07]
+BLER [0.9789, 0.9406000000000001, 0.8633500000000001, 0.7355499999999999, 0.5584, 0.38625, 0.22935, 0.12885, 0.0697, 0.034, 0.01515, 0.0078000000000000005, 0.0037999999999999996]
+BLER_VAR [0.020655822791139554, 0.05587443372168609, 0.11798267663383168, 0.19452592379618983, 0.24660177008850445, 0.237072791139557, 0.17675741537076856, 0.11225329016450823, 0.06484515225761289, 0.03284564228211411, 0.014921223561178058, 0.007739546977348864, 0.0037857492874643715]
+encoder power is tensor(0.9998)
+adjusted SNR should be [-3.001859694759066, -2.501859791648444, -2.001859604481031, -1.501859585584591, -1.0018593316971656, -0.5018587718947282, -0.0018594489174382728, 0.4981407184533423, 0.9981410578838302, 1.4981407504502515, 1.9981409393808112, 2.4981403765339705, 2.998140757381171]

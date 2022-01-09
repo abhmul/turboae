@@ -164,7 +164,7 @@ if __name__ == '__main__':
         pass
 
     else:
-        pretrained_model = torch.load(args.init_nw_weight)
+        pretrained_model = torch.load(args.init_nw_weight, map_location=device)
 
         try:
             model.load_state_dict(pretrained_model.state_dict(), strict = False)
@@ -252,8 +252,8 @@ if __name__ == '__main__':
     # Testing Processes
     #################################################
 
-    torch.save(model.state_dict(), './tmp/torch_model_'+identity+'.pt')
-    print('saved model', './tmp/torch_model_'+identity+'.pt')
+    # torch.save(model.state_dict(), './tmp/torch_model_'+identity+'.pt')
+    # print('saved model', './tmp/torch_model_'+identity+'.pt')
 
     if args.is_variable_block_len:
         print('testing block length',args.block_len_low )

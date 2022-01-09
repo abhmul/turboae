@@ -4,18 +4,20 @@ import numpy as np
 import math
 
 def errors_ber(y_true, y_pred, positions = 'default'):
+    block_len = y_true.shape[1]
     y_true = y_true.view(y_true.shape[0], -1, 1)
     y_pred = y_pred.view(y_pred.shape[0], -1, 1)
 
     myOtherTensor = torch.ne(torch.round(y_true), torch.round(y_pred)).float()
     if positions == 'default':
+        res_list = torch.sum(myOtherTensor, dim=1).cpu().numpy() / block_len
         res = sum(sum(myOtherTensor))/(myOtherTensor.shape[0]*myOtherTensor.shape[1])
     else:
         res = torch.mean(myOtherTensor, dim=0).type(torch.FloatTensor)
         for pos in positions:
             res[pos] = 0.0
         res = torch.mean(res)
-    return res
+    return res, res_list
 
 def errors_ber_list(y_true, y_pred):
     block_len = y_true.shape[1]
@@ -47,7 +49,7 @@ def code_power(the_codes):
     return res
 
 def errors_bler(y_true, y_pred, positions = 'default'):
-
+    block_len = y_true.shape[1]
     y_true = y_true.view(y_true.shape[0], -1, 1)
     y_pred = y_pred.view(y_pred.shape[0], -1, 1)
 
@@ -57,13 +59,14 @@ def errors_bler(y_true, y_pred, positions = 'default'):
     tp0 = tp0.cpu().numpy()
 
     if positions == 'default':
-        bler_err_rate = sum(np.sum(tp0,axis=1)>0)*1.0/(X_test.shape[0])
+        bler_err_rate_list = (np.sum(tp0,axis=1)>0)*1.0 
+        bler_err_rate = sum(bler_err_rate_list)/(X_test.shape[0])
     else:
         for pos in positions:
             tp0[:, pos] = 0.0
         bler_err_rate = sum(np.sum(tp0,axis=1)>0)*1.0/(X_test.shape[0])
 
-    return bler_err_rate
+    return bler_err_rate, bler_err_rate_list
 
 # note there are a few definitions of SNR. In our result, we stick to the following SNR setup.
 def snr_db2sigma(train_snr):
